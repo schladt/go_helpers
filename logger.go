@@ -25,7 +25,7 @@ type Logger struct {
 func (l *Logger) Init() {
 	//set default values if not given
 	if l.Filename == "" {
-		l.Filename = "new.log"
+		l.Filename = "default.log"
 	}
 
 	if l.MaxSize == 0 {
