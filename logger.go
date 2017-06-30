@@ -9,14 +9,15 @@ import (
 )
 
 type Logger struct {
-	debug      log.Logger
-	info       log.Logger
-	warning    log.Logger
-	error      log.Logger
+	Level      string
 	Filename   string
 	MaxSize    int
 	MaxBackUps int
 	MaxAge     int
+	debug      log.Logger
+	info       log.Logger
+	warning    log.Logger
+	error      log.Logger
 	isInit     bool
 }
 
@@ -37,6 +38,10 @@ func (l *Logger) Init() {
 
 	if l.MaxBackUps == 0 {
 		l.MaxBackUps = 3
+	}
+
+	if l.Level == "" {
+		l.Level = "DEBUG"
 	}
 
 	//set up the logging function
@@ -78,15 +83,9 @@ func (l *Logger) Debug(text string, args ...interface{}) {
 	if !l.isInit {
 		l.Init()
 	}
-	l.debug.Printf(text, args...)
-}
-
-//Logs warning messages
-func (l *Logger) Warn(text string, args ...interface{}) {
-	if !l.isInit {
-		l.Init()
+	if l.Level == "DEBUG" {
+		l.debug.Printf(text, args...)
 	}
-	l.warning.Printf(text, args...)
 }
 
 //Logs info messages
@@ -94,7 +93,19 @@ func (l *Logger) Info(text string, args ...interface{}) {
 	if !l.isInit {
 		l.Init()
 	}
-	l.info.Printf(text, args...)
+	if l.Level == "DEBUG" || l.Level == "INFO" {
+		l.info.Printf(text, args...)
+	}
+}
+
+//Logs warning messages
+func (l *Logger) Warn(text string, args ...interface{}) {
+	if !l.isInit {
+		l.Init()
+	}
+	if l.Level == "DEBUG" || l.Level == "INFO" || l.Level == "WARN" {
+		l.warning.Printf(text, args...)
+	}
 }
 
 //Logs error messages
@@ -102,5 +113,6 @@ func (l *Logger) Error(text string, args ...interface{}) {
 	if !l.isInit {
 		l.Init()
 	}
+	//always show error messages
 	l.error.Printf(text, args...)
 }
