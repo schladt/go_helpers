@@ -36,7 +36,7 @@ func main() {
 	for _, proxy := range proxies {
 		//test with proxy
 		url_i := url.URL{}
-		url_proxy, _ := url_i.Parse("http://" + proxy)
+		url_proxy, _ := url_i.Parse(proxy)
 		transport.Proxy = http.ProxyURL(url_proxy)
 
 		log.Printf("Testing : " + proxy)
@@ -157,6 +157,12 @@ func findProxies() ([]string, error) {
 
 	//convert the temp maps into proper slices
 	for proxy, _ := range tempProxies {
+		if len(proxy) < 7 {
+			proxy = "http://" + proxy
+		} else if proxy[:7] != "http://" {
+			proxy = "http://" + proxy
+		}
+
 		proxies = append(proxies, proxy)
 	}
 
