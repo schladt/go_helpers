@@ -2,10 +2,12 @@
 package logger
 
 import (
-	"gopkg.in/natefinch/lumberjack.v2"
+	"fmt"
 	"io"
 	"log"
 	"os"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Logger struct {
@@ -18,18 +20,19 @@ type Logger struct {
 	info       log.Logger
 	warning    log.Logger
 	error      log.Logger
+	fatal      log.Logger
 	isInit     bool
 }
 
-//Initializes logger for first user
+//Initializes logger for first use
 func (l *Logger) Init() {
 	//set default values if not given
 	if l.Filename == "" {
-		l.Filename = "default.log"
+		l.Filename = "new.log"
 	}
 
 	if l.MaxSize == 0 {
-		l.MaxSize = 100
+		l.MaxSize = 10
 	}
 
 	if l.MaxAge == 0 {
@@ -74,6 +77,11 @@ func (l *Logger) Init() {
 	l.error.SetFlags(log.LstdFlags | log.LUTC)
 	l.error.SetOutput(mw)
 
+	l.fatal = log.Logger{}
+	l.fatal.SetPrefix("[FATAL]\t")
+	l.fatal.SetFlags(log.LstdFlags | log.LUTC)
+	l.fatal.SetOutput(mw)
+
 	//mark as initialized
 	l.isInit = true
 }
@@ -115,4 +123,15 @@ func (l *Logger) Error(text string, args ...interface{}) {
 	}
 	//always show error messages
 	l.error.Printf(text, args...)
+}
+
+//Logs fatal error message and then exits
+func (l *Logger) Fatal(text string, args ...interface{}) {
+	if !l.isInit {
+		l.Init()
+	}
+	//always show error messages
+	message := fmt.Sprintf(text, args...)
+	l.fatal.Printf(message)
+	os.Exit(1)
 }
