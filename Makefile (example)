@@ -1,0 +1,50 @@
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GOCLEAN=$(GOCMD) clean
+GOTEST=$(GOCMD) test
+GOGET=$(GOCMD) get
+BASE_NAME=uhop_client
+CLIENT_VERSION=3.0.1
+OS=$(shell go env GOOS)
+ARCH=$(shell go env GOARCH)
+EXT=$(shell go env GOEXE)
+BINARY_PATH=bin/$(BASE_NAME)_$(OS)_$(ARCH)$(EXT)
+
+all: build final
+
+build:
+	$(GOBUILD) -v -ldflags="-s -w -X main.version=$(CLIENT_VERSION)" -o $(BINARY_PATH) ./src
+
+test: 
+	$(GOTEST) -v ./...
+
+clean:
+	$(GOCLEAN)
+
+run:
+	build
+	./$(BINARY_PATH)
+
+final:
+ifeq ($(OS),linux)
+	$(eval OUTFILE := $(shell sha256sum $(BINARY_PATH)))
+else ifeq ($(OS),darwin)
+	$(eval OUTFILE := $(shell shasum -a 256 $(BINARY_PATH)))
+else ifeq ($(OS),windows)
+	$(eval OUTFILE := $(shell PowerShell.exe Get-FileHash $(BINARY_PATH)))
+else
+	$(error Unsupported: $(NATIVE))
+endif
+	@echo "Binary created : $(OUTFILE)"
+
+deps:
+	$(GOGET) github.com/matishsiao/goInfo
+	$(GOGET) github.com/mattn/go-sqlite3
+	$(GOGET) github.com/mitchellh/go-ps
+	$(GOGET) golang.org/x/sys/windows/registry
+	$(GOGET) gopkg.in/natefinch/lumberjack.v2
+	$(GOGET) github.com/kardianos/service
+	$(GOGET) gopkg.in/yaml.v2
+	$(GOGET) github.com/jessevdk/go-flags
+	$(GOGET) github.com/shirou/gopsutil/process
+	$(GOGET) github.com/juju/fslock
